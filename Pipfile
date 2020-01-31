@@ -8,6 +8,8 @@ verify_ssl = true
 [packages]
 gdown = "*"
 jupyterlab = "*"
+pandas = "*"
+seaborn = "*"
 
 [requires]
 python_version = "3.6"
