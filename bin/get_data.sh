@@ -3,7 +3,8 @@ wget -nc -O data/arabic.zip https://www.dropbox.com/sh/qfootyofgiywjjl/AADMWDIaE
 wget -nc -O data/danish.zip https://www.dropbox.com/sh/qfootyofgiywjjl/AAC1AGvb_6OOg8KeyWI_QIlZa/Danish.zip?dl=0
 wget -nc -O data/greek.zip https://www.dropbox.com/sh/qfootyofgiywjjl/AACDTE3rHIbzN7ZBRurPQcJna/Greek.zip?dl=0
 wget -nc -O data/turkish.zip https://www.dropbox.com/sh/qfootyofgiywjjl/AAC65KmUVmuE1gM1DHgoWtI5a/Turkish.zip?dl=0
-
+mkdir data/olid
+wget -nc -O data/olid/olid.zip https://sites.google.com/site/offensevalsharedtask/olid/OLIDv1.0.zip?attredirects=0&d=1
 # English data
 gdown -O data/english-task-a.zip https://drive.google.com/uc?id=10j4FeNTTh9yeOwtpo2mdB7YQS9urNnLi
 gdown -O data/english-task-b.zip https://drive.google.com/uc?id=1grFkLmYts5Dw_yJVnUS-353Uc14FBf5D
@@ -21,8 +22,13 @@ do
 done
 
 mkdir Arabic
+mkdir English
 mv offenseval-ar-* Arabic/
 mv readme-data-ar.txt Arabic/
 mv README_data_en.txt English/
 mv task_* English
 rm *.zip
+# Get OLID and unzip it
+cd olid
+unzip olid.zip
+rm olid.zip
