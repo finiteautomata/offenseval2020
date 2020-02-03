@@ -12,7 +12,8 @@ More information about evaluation will be sent via e-mail in due time.
 0. Install requirements
 
 ```
-pipenv shell && pipenv sync
+pipenv shell 
+pipenv sync
 ```
 
 1. Get data
