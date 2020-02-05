@@ -10,6 +10,12 @@ gdown = "*"
 jupyterlab = "*"
 pandas = "*"
 seaborn = "*"
+transformers = "*"
+ipywidgets = "*"
+tqdm = "*"
+torch = "*"
+torchtext = "*"
+fire = "*"
 
 [requires]
 python_version = "3.6"
