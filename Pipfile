@@ -16,6 +16,8 @@ tqdm = "*"
 torch = "*"
 torchtext = "*"
 fire = "*"
+sklearn = "*"
+ipdb = "*"
 
 [requires]
 python_version = "3.6"
