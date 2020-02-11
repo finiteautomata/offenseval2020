@@ -32,10 +32,11 @@ jupyter nbextension enable --py widgetsnbextension
 jupyter labextension install @jupyter-widgets/jupyterlab-manager
 ```
 
-3. Generate samples
+3. Generate samples and dev datasets
 
 ```
-python bin/generate_samples --sample_frac 0.01
+python bin/generate_samples.py --sample_frac 0.01
+python bin/split_datasets.py --frac 0.2
 ```
 
 ### Data
