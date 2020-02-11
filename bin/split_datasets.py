@@ -29,6 +29,7 @@ def merge_olid():
     assert(all(df_test["subtask_a"].notna()))
 
     save_path = "data/olid/test_a.tsv"
+    df_test = df_test.rename(columns={"tweet": "text"})
     df_test.to_csv(save_path, sep="\t")
 
     print(f"{df_test.shape[0]} instances saved to {save_path}")
