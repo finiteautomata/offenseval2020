@@ -19,6 +19,7 @@ fire = "*"
 sklearn = "*"
 ipdb = "*"
 offenseval2020 = {editable = true,path = "."}
+pytest = "*"
 
 [requires]
 python_version = "3.6"

@@ -39,6 +39,14 @@ python bin/generate_samples.py --sample_frac 0.01
 python bin/split_datasets.py --frac 0.2
 ```
 
+### Tests
+
+We use `pytest` for our tests. Just run
+
+```
+pytest tests/
+```
+
 ### Data
 
 Thanks for registering for OffensEval 2020!
