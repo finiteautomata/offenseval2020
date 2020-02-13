@@ -1,6 +1,5 @@
 
 # coding: utf-8
-from keras.preprocessing.sequence import pad_sequences
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm, trange
 import pandas as pd
@@ -117,6 +116,11 @@ def load_embeddings(vec, vocab):
         pass
   del model
   return torch.from_numpy(embeddings).float(), embedding_dim
+
+def mult(lista, entero):
+    for i in range(len(lista)):
+        lista[i] *= entero
+    return lista
 
 def gen_vocab(tweets):
     vocab, reverse_vocab = {}, {}
