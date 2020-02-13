@@ -30,14 +30,15 @@ from hyperparameter_tunning import *
 def Experimental_configuration(Text_train, y_train, Text_val, y_val, device, epochs):
   current_combination = {}
   #preparing data
+  language = 'DANISH'
   vocab = gen_vocab(Text_train)
   MAX_LEN =  max_length(Text_train)
   print(MAX_LEN)
   X = pad_sequences(gen_sequence(Text_train,vocab),  MAX_LEN)
   X_val = pad_sequences(gen_sequence(Text_val,vocab), MAX_LEN)
-  embedding_type = 'glove'
+  embedding_type = 'da'
   embeddings, embeddings_dim = load_embeddings(embedding_type, vocab)
-  for model_name  in ['LSTM','LSTMATTN']: #'LSTMATTN' different models ['FNN', 'CNN', 'LSTM', 'LSTM_ATTN', 'MHAttention', 'LSTM_CNN']
+  for model_name  in ['LSTM']: #'LSTMATTN' different models ['FNN', 'CNN', 'LSTM', 'LSTM_ATTN', 'MHAttention', 'LSTM_CNN']
       params = get_config(model_name,'config', None)
       for trainable_embeddings in [False]:
 
@@ -50,12 +51,12 @@ def Experimental_configuration(Text_train, y_train, Text_val, y_val, device, epo
           current_combination["embedding_type"] = embedding_type
           current_combination["embedding_dim"] = embeddings_dim
           current_combination["trainable_embeddings"] = trainable_embeddings
-
+         
           print(current_combination)
-          file_best_param = "./logs/ENGLISH/best_param" + " " + current_combination["model_name"] + " " + current_combination["embedding_type"] + " " + "trainable " + str(current_combination["trainable_embeddings"]) + ".json" 
+          file_best_param = "./logs/"+language+"/best_param" + " " + current_combination["model_name"] + " " + current_combination["embedding_type"] + " " + "trainable " + str(current_combination["trainable_embeddings"]) + ".json" 
           with open(file_best_param, 'w') as outfile:
             json.dump({"f_score": 0}, outfile)
-          hyperparameter_tunning(model_name, embeddings, embedding_type,params, 0, current_combination , device, X, X_val, y_train, y_val, file_best_param, epochs)
+          hyperparameter_tunning(model_name, embeddings, embedding_type,params, 0, current_combination , device, X, X_val, y_train, y_val, file_best_param, epochs,language)
 
 def average_to_label(y):
   y_temp = []
@@ -68,19 +69,20 @@ def average_to_label(y):
 
 def main(epochs):
 
-    data_train = pd.read_csv('../data_offenseEval/English/task_a_distant.train.tsv', sep='\t')
+    data_train = pd.read_csv('../data_offenseEval/Danish/train.tsv', sep='\t')
 
 
-    data_val = pd.read_csv('../data_offenseEval/English/olid-training-v1.0.tsv', sep='\t')
+    data_val = pd.read_csv('../data_offenseEval/Danish/dev.tsv', sep='\t')
 
 
     print(data_train.keys())
-    print(len(data_train['text']))
+    print(len(data_train['tweet']))
 
-    X_train = data_train['text']
+    X_train = data_train['tweet']
 
-    y_train = average_to_label(data_train['average'])
+    #y_train = average_to_label(data_train['average'])
 
+    y_train = binarize(data_train['subtask_a'])
 
 # X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
 
