@@ -1,6 +1,6 @@
 import pytest
 from transformers import BertTokenizer
-from offenseval.tokenizer import Tokenizer
+from offenseval.nn import Tokenizer
 
 @pytest.fixture
 def bert_tokenizer():
