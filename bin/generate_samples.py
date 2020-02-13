@@ -8,7 +8,13 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-def generate_samples(sample_frac=0.05, random_state=20202020):
+def save_sample(df, frac, path, random_state):
+    sample = df.sample(frac=frac, random_state=random_state)
+    sample.to_csv(path, sep="\t")
+    print(f"\n{sample.shape[0] / 1e3:.2f}K records saved to {path}")
+
+
+def generate_samples(sample_frac=0.05, xsmall_frac=0.0001, random_state=20202020):
     """
     Generate samples for datasets
     """
@@ -22,12 +28,12 @@ def generate_samples(sample_frac=0.05, random_state=20202020):
 
     print(f"\nGenerating sample of frac = {sample_frac}")
     base, ext = os.path.splitext(path)
+
     sample_path = f"{base}.sample{ext}"
+    save_sample(df_train, sample_frac, sample_path, random_state)
 
-    sample = df_train.sample(frac=sample_frac, random_state=random_state)
-    sample.to_csv(sample_path, sep="\t")
-
-    print(f"\n{sample.shape[0] / 1e3:.2f}K records saved to {sample_path}")
+    xsmall_path = f"{base}.xsmall{ext}"
+    save_sample(df_train, xsmall_frac, xsmall_path, random_state)
 
 
 
