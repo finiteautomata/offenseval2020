@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 # from torch.nn import MultiheadAttention
+
+
 class MHAttention(nn.Module):
     def __init__(self,embeddings,embedding_type, params):
         # (self, vocab_size, embed_dim, num_heads, bias=True, add_bias_kv=False, add_zero_attn=False, kdim=None, vdim=None):
