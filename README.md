@@ -39,6 +39,10 @@ python bin/generate_samples.py --sample_frac 0.01
 python bin/split_datasets.py --frac 0.2
 ```
 
+4. Train BERT
+```
+python bin/train_bert.py models/bert.en.ft --train_path data/English/task_a_distant.sample.tsv --dev_path data/olid/olid-training-v1.0.tsv --test_path data/olid/test_a.tsv
+```
 ### Tests
 
 We use `pytest` for our tests. Just run

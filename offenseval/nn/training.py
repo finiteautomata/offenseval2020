@@ -1,4 +1,5 @@
 import torch
+import random
 from sklearn.metrics import accuracy_score, f1_score
 from tqdm.autonotebook import tqdm
 
@@ -113,3 +114,49 @@ def evaluate(model, iterator, criterion, get_target):
         acc = accuracy_score(labels, preds)
 
     return epoch_loss / len(iterator), acc, avg_f1, pos_f1, neg_f1
+
+
+def train_cycle(model, optimizer, criterion, scheduler,
+                train_it, dev_it, epochs, mean_threshold,
+                model_path, early_stopping_tolerance=5):
+    best_valid_loss = float('inf')
+
+    max_grad_norm = 1.0
+
+    def get_target(batch):
+        return 1. * (batch.avg > mean_threshold)
+
+
+    pbar = tqdm(range(epochs), ncols=100)
+    pbar.set_description("Epochs")
+
+    epochs_without_improvement = 0
+
+
+    for epoch in pbar:
+        print(f"\n\nEpoch {epoch}")
+        try:
+            train_loss, train_acc = train(
+                model, train_it, optimizer, criterion, get_target=get_target,
+                max_grad_norm=max_grad_norm, scheduler=scheduler, ncols=100
+            )
+            valid_loss, valid_acc, valid_f1, pos_f1, neg_f1 = evaluate(
+                model, dev_it, criterion, get_target=lambda batch: batch.subtask_a
+            )
+
+            desc = f'Train: Loss: {train_loss:.3f} Acc: {train_acc*100:.2f}%'
+            desc += f'\nVal. Loss: {valid_loss:.3f} Acc: {valid_acc*100:.2f}% Macro F1 {valid_f1:.3f} (P {pos_f1:.3f} - N {neg_f1:.3f})'
+
+            print(desc)
+            if valid_loss < best_valid_loss:
+                best_valid_loss = valid_loss
+                epochs_without_improvement = 0
+                torch.save(model.state_dict(), model_path)
+                print(f"Best model so far (Loss {best_valid_loss:.3f} - Acc {valid_acc:.3f}, F1 {valid_f1:.3f}) saved at {model_path}")
+            else:
+                epochs_without_improvement += 1
+                if epochs_without_improvement >= early_stopping_tolerance:
+                    print("Early stopping")
+                    break
+        except KeyboardInterrupt:
+            print("Stopping training!")

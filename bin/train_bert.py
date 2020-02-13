@@ -6,56 +6,50 @@ from datetime import datetime
 import fire
 import torch
 from torchtext import data
-from transformers import BertTokenizer
-from offenseval import Tokenizer
+import torch.optim as optim
+import torch.nn as nn
+from sklearn.utils import compute_class_weight
+from transformers import (
+    AdamW, BertForSequenceClassification, BertTokenizer,
+    get_constant_schedule_with_warmup
+)
 
-def timeit(func):
-    def ret_func(*args, **kwargs):
-        begin = datetime.now()
-        ret = func(*args, **kwargs)
-        end = datetime.now()
-        delta = end - begin
-        print(f"Time {(delta.seconds) // 60}m{delta.seconds % 60}s\n")
-
-        return ret
-    return ret_func
-
-
-@timeit
-def print_report(model, dev_it, NUM_SCORE):
-    labels, preds = get_labels_and_predictions(model, dev_it)
-
-    y = [float(NUM_SCORE.vocab.itos[t]) for t in labels]
-    y_pred = [float(NUM_SCORE.vocab.itos[t]) for t in preds]
-
-    acc, macro_f1, mse, weighted_mse = get_metrics(y, y_pred)
-
-    print(f"Accuracy     = {acc:.3f}")
-    print(f"Macro-F1     = {macro_f1:.3f}")
-    print(f"MSE          = {mse:.3f}")
-    print(f"Weighted MSE = {weighted_mse:.3f}")
-
-def save_model(model, TEXT, NUM_SCORE, output_path):
-    base, _ = os.path.splitext(output_path)
-    vocab_path = f"{base}.vocab.pkl"
-    num_score_path = f"{base}.num_score.pkl"
-
-    torch.save(model, output_path)
-
-    with open(vocab_path, "wb") as f:
-        pickle.dump(TEXT, f)
-
-    with open(num_score_path, "wb") as f:
-        pickle.dump(NUM_SCORE, f)
-
-    print(f"Model saved to {output_path}")
-    print(f"Vocab saved to {vocab_path}")
-    print(f"Label vocab saved to {num_score_path}")
+from offenseval.nn import (
+    Tokenizer,
+    train, evaluate, train_cycle, save_model
+)
 
 
+def create_model(device):
+    model = BertForSequenceClassification.from_pretrained(
+        'bert-base-multilingual-uncased',
+        num_labels=1,
+    )
 
-def train_bert(output_path, train_path, dev_path, test_path,
-    epochs=5):
+    model = model.to(device)
+
+    return model
+
+def create_criterion(train_dataset, device, use_class_weight=True):
+    y = [(1*(row.avg > 0.6)) for row in train_dataset]
+
+    class_weights = compute_class_weight('balanced', [0, 1], y)
+
+    # normalize it
+    class_weights = class_weights / class_weights[0]
+
+    if use_class_weight:
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([class_weights[1]]))
+    else:
+        criterion = nn.BCEWithLogitsLoss()
+
+    criterion = criterion.to(device)
+    return criterion
+
+
+def train_bert(
+    output_path, train_path, dev_path, test_path,
+    epochs=5, mean_threshold=0.6):
     """
     Train and save an RNN classifier
     Arguments
@@ -66,9 +60,6 @@ def train_bert(output_path, train_path, dev_path, test_path,
         Path to train .csv
     dev_path: path to dataset
         Path to dev .csv.
-
-    fix_length: int (default None)
-        Truncate the sentences to given length. If None, no cut is performed
     """
     print(f"\n\nTraining BERT using {train_path}. Testing against {dev_path}")
 
@@ -143,7 +134,40 @@ def train_bert(output_path, train_path, dev_path, test_path,
         (train_dataset, dev_dataset, test_dataset), batch_size=BATCH_SIZE, device=device,
         sort_key = lambda x: len(x.text), sort_within_batch = True,
     )
-    return
+
+    print("Creating model, optimizer, loss and scheduler")
+
+    model = create_model(device)
+    criterion = create_criterion(train_dataset, device, use_class_weight=True)
+    optimizer = AdamW(model.parameters(), lr=1e-5)
+
+    num_training_steps = epochs * len(train_it)
+    num_warmup_steps = num_training_steps // 10
+    warmup_proportion = float(num_warmup_steps) / float(num_training_steps)  # 0.1
+
+    scheduler = get_constant_schedule_with_warmup(
+        optimizer, num_warmup_steps=num_warmup_steps,
+    )
+
+    train_cycle(model, optimizer, criterion, scheduler,
+                train_it, dev_it, epochs, mean_threshold=mean_threshold,
+                model_path=output_path, early_stopping_tolerance=5)
+
+    print("\n\nLoading best-loss model")
+    model.load_state_dict(torch.load(output_path))
+
+
+    loss, acc, f1, pos_f1, neg_f1 = evaluate(model, dev_it, criterion, get_target=lambda batch: batch.subtask_a)
+
+    print(f'Val Loss: {loss:.3f}  Acc: {acc*100:.2f}% Macro F1: {f1:.3f} Pos F1 {pos_f1:.3f} Neg F1 {neg_f1:.3f}')
+
+
+    loss, acc, f1, pos_f1, neg_f1 = evaluate(model, test_it, criterion, get_target=lambda batch: batch.subtask_a)
+
+    print(f'Test Loss: {loss:.3f}  Acc: {acc*100:.2f}% Macro F1: {f1:.3f} Pos F1 {pos_f1:.3f} Neg F1 {neg_f1:.3f}')
+
+    save_model(model, TEXT, output_path)
+
 
 if __name__ == "__main__":
     fire.Fire(train_bert)
