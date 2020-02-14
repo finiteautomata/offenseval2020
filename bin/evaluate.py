@@ -6,12 +6,6 @@ from datetime import datetime
 import fire
 import torch
 from torchtext import data
-import torch.nn as nn
-from transformers import (
-    AdamW, BertForSequenceClassification, BertTokenizer,
-    get_constant_schedule_with_warmup
-)
-
 from offenseval.nn import (
     Tokenizer,
     train, evaluate_dataset, train_cycle, save_model, load_model
