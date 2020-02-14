@@ -80,41 +80,6 @@ def train(model, iterator, optimizer, criterion, get_target,
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
 
 
-def evaluate(model, iterator, criterion, get_target):
-    """
-    Evaluates the model on the given iterator
-    """
-    epoch_loss = 0
-    model.eval()
-    with torch.no_grad():
-        predicted_probas = []
-        labels = []
-        for batch in iterator:
-            text, lens = batch.text
-            target = get_target(batch)
-
-            predictions = model(text)[0]
-            loss = criterion(predictions.squeeze(1), target.float())
-
-            prob_predictions = torch.sigmoid(predictions)
-
-            predicted_probas.append(prob_predictions)
-            labels.append(target.cpu())
-
-            epoch_loss += loss.item()
-
-        predicted_probas = torch.cat(predicted_probas).cpu()
-        labels = torch.cat(labels).cpu()
-
-        preds = torch.round(predicted_probas)
-
-        pos_f1 = f1_score(labels, preds)
-        neg_f1 = f1_score(1-labels, 1-preds)
-        avg_f1 = (pos_f1 + neg_f1) / 2
-        acc = accuracy_score(labels, preds)
-
-    return epoch_loss / len(iterator), acc, avg_f1, pos_f1, neg_f1
-
 
 def train_cycle(model, optimizer, criterion, scheduler,
                 train_it, dev_it, epochs, mean_threshold,

@@ -16,13 +16,13 @@ def save_model(model, TEXT, output_path):
     print(f"Model saved to {output_path}")
     print(f"Vocab saved to {vocab_path}")
 
-def load_model(model_path):
+def load_model(model_path, device):
     base, _ = os.path.splitext(model_path)
     vocab_path = f"{base}.vocab.pkl"
 
     with open(vocab_path, "rb") as f:
         TEXT = pickle.load(f)
 
-    model = torch.load(model_path)
+    model = torch.load(model_path, map_location=device)
 
     return model, TEXT
