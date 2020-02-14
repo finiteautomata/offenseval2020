@@ -160,3 +160,4 @@ def train_cycle(model, optimizer, criterion, scheduler,
                     break
         except KeyboardInterrupt:
             print("Stopping training!")
+            break

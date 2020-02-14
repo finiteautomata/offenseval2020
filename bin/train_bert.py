@@ -1,5 +1,5 @@
 """
-Script to split dataset into train, dev, test, and a small sample of train
+Script to train a BERT model
 """
 import os
 from datetime import datetime
@@ -67,7 +67,6 @@ def train_bert(
 
     print("Reading and tokenizing data...")
 
-    begin = datetime.now()
     bert_tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-uncased')
     init_token_idx = bert_tokenizer.cls_token_id
     eos_token_idx = bert_tokenizer.sep_token_id
@@ -126,9 +125,6 @@ def train_bert(
     print("Building iterators")
 
     BATCH_SIZE = 32
-
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     train_it, dev_it, test_it = data.BucketIterator.splits(
         (train_dataset, dev_dataset, test_dataset), batch_size=BATCH_SIZE, device=device,
