@@ -17,7 +17,7 @@ def evaluate(model, iterator, criterion, get_target):
             text, lens = batch.text
             target = get_target(batch)
 
-            predictions = model(text)[0]
+            predictions = model(text)
             loss = criterion(predictions.squeeze(1), target.float())
 
             prob_predictions = torch.sigmoid(predictions)
