@@ -1,7 +1,7 @@
 import torch.nn as nn
 from transformers import BertPreTrainedModel
 
-class BertModelWithAdapter(nn.Module):
+class BertSeqModel(nn.Module):
     def __init__(self, bert, dropout=0.1, num_labels=1):
         """
         Arguments:

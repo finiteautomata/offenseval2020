@@ -1,7 +1,7 @@
 import pytest
 import torch
 from unittest.mock import MagicMock
-from offenseval.nn.models import BertModelWithAdapter
+from offenseval.nn.models import BertSeqModel
 
 
 @pytest.fixture
@@ -20,11 +20,11 @@ def bert_model():
 
 @pytest.fixture
 def model(bert_model):
-    return BertModelWithAdapter(bert_model)
+    return BertSeqModel(bert_model)
 
 
 def test_it_can_be_created(bert_model):
-    model = BertModelWithAdapter(bert_model)
+    model = BertSeqModel(bert_model)
 
 def test_it_returns_something(model):
     # (batch, seqlen)

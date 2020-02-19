@@ -1,7 +1,9 @@
+
 import torch
 import random
 from sklearn.metrics import accuracy_score, f1_score
 from tqdm.autonotebook import tqdm
+from .evaluation import evaluate
 
 def train(model, iterator, optimizer, criterion, get_target,
           scheduler=None, max_grad_norm=None, ncols=500):

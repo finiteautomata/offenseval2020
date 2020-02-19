@@ -10,7 +10,7 @@ import torch.optim as optim
 import torch.nn as nn
 from sklearn.utils import compute_class_weight
 from transformers import (
-    AdamW, BertForSequenceClassification, BertTokenizer,
+    AdamW, BertTokenizer, BertModel,
     get_constant_schedule_with_warmup
 )
 
@@ -18,14 +18,25 @@ from offenseval.nn import (
     Tokenizer,
     train, evaluate, train_cycle, save_model
 )
+from offenseval.nn.models import BertSeqModel
+
+AVAILABLE_MODELS = {"bert_uncased", "bert_cased"}
 
 
-def create_model(device):
-    model = BertForSequenceClassification.from_pretrained(
-        'bert-base-multilingual-uncased',
-        num_labels=1,
-    )
+def create_model(model_name, device):
+    if model_name not in AVAILABLE_MODELS:
+        raise ValueError(f"{model_name} not available -- must be in {AVAILABLE_MODELS}")
 
+    if model_name == "bert_uncased":
+        bert_name = "bert-base-multilingual-uncased"
+    elif model_name == "bert_cased":
+        bert_name = "bert-base-multilingual-cased"
+    else:
+        raise ValueError("Must set BERT type")
+    print(f"Using {bert_name}")
+    bert_model = BertModel.from_pretrained(bert_name)
+
+    model = BertSeqModel(bert_model)
     model = model.to(device)
 
     return model
@@ -48,7 +59,7 @@ def create_criterion(train_dataset, device, use_class_weight=True):
 
 
 def train_bert(
-    output_path, train_path, dev_path, test_path,
+    model_name, output_path, train_path, dev_path, test_path,
     epochs=5, mean_threshold=0.6):
     """
     Train and save an RNN classifier
@@ -56,14 +67,22 @@ def train_bert(
     ---------
     output_path: a path
         Where to save the model
+
     train_path: path to dataset
         Path to train .csv
+
     dev_path: path to dataset
         Path to dev .csv.
+
+    model_name: string
+        Must be "bert_cased", "bert_uncased"
     """
     print(f"\n\nTraining BERT using {train_path}. Testing against {dev_path}")
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    print("\nCreating model...")
+    model = create_model(model_name, device)
 
     print("Reading and tokenizing data...")
 
@@ -131,9 +150,8 @@ def train_bert(
         sort_key = lambda x: len(x.text), sort_within_batch = True,
     )
 
-    print("Creating model, optimizer, loss and scheduler")
+    print("Creating optimizer, loss and scheduler")
 
-    model = create_model(device)
     criterion = create_criterion(train_dataset, device, use_class_weight=True)
     optimizer = AdamW(model.parameters(), lr=1e-5)
 
