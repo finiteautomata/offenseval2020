@@ -21,6 +21,7 @@ sys.path.append('./models')
 
 from utils import *
 from train import *
+from augment import augment_danish
 
 from hyperparameter_tunning import *
 
@@ -71,6 +72,8 @@ def main(epochs):
 
     data_train = pd.read_csv('../data_offenseEval/Danish/train.tsv', sep='\t')
 
+    # see augment.py:
+    data_train = augment_danish(data_train)
 
     data_val = pd.read_csv('../data_offenseEval/Danish/dev.tsv', sep='\t')
 
