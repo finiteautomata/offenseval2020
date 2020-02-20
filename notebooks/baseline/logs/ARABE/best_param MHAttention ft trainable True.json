@@ -1,0 +1,1 @@
+{"model_name": "MHAttention", "max_len": 941, "vocab_size": 33790, "embedding_type": "ft", "embedding_dim": 300, "trainable_embeddings": true, "learning_rate": 0.01, "batch_size": 16, "hidden_dim": 1200, "n_layers": 3, "num_heads": 2, "best_epoch": 63, "f_score": 0.2934051186369961}
