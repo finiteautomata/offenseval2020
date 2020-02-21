@@ -20,6 +20,7 @@ sklearn = "*"
 ipdb = "*"
 offenseval2020 = {editable = true,path = "."}
 pytest = "*"
+plotly = "*"
 
 [requires]
 python_version = "3.6"
