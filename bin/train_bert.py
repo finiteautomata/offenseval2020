@@ -23,7 +23,7 @@ from offenseval.nn.models import BertSeqModel
 AVAILABLE_MODELS = {"bert_uncased", "bert_cased"}
 
 
-def create_model(model_name, device):
+def create_model_and_tokenizer(model_name, device):
     if model_name not in AVAILABLE_MODELS:
         raise ValueError(f"{model_name} not available -- must be in {AVAILABLE_MODELS}")
 
@@ -33,13 +33,16 @@ def create_model(model_name, device):
         bert_name = "bert-base-multilingual-cased"
     else:
         raise ValueError("Must set BERT type")
+
     print(f"Using {bert_name}")
     bert_model = BertModel.from_pretrained(bert_name)
+    bert_tokenizer = BertTokenizer.from_pretrained(bert_name)
+
 
     model = BertSeqModel(bert_model)
     model = model.to(device)
 
-    return model
+    return model, bert_tokenizer
 
 def create_criterion(train_dataset, device, use_class_weight=True):
     y = [(1*(row.avg > 0.6)) for row in train_dataset]
@@ -82,11 +85,10 @@ def train_bert(
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     print("\nCreating model...")
-    model = create_model(model_name, device)
+    model, bert_tokenizer = create_model_and_tokenizer(model_name, device)
 
     print("Reading and tokenizing data...")
 
-    bert_tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-uncased')
     init_token_idx = bert_tokenizer.cls_token_id
     eos_token_idx = bert_tokenizer.sep_token_id
     pad_token_idx = bert_tokenizer.pad_token_id
