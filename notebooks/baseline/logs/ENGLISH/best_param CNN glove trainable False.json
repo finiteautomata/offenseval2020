@@ -1,0 +1,1 @@
+{"model_name": "CNN", "max_len": 500, "vocab_size": 55224, "embedding_type": "glove", "embedding_dim": 200, "trainable_embeddings": false, "learning_rate": 0.01, "batch_size": 64, "hidden_dim": 50, "n_filters": 5, "filter_size": 4, "n_layers": 1, "best_epoch": 23, "f_score": 0.3828078306848472}

@@ -1,0 +1,1 @@
+{"model_name": "LSTM", "max_len": 73, "vocab_size": 7563, "embedding_type": "ft", "embedding_dim": 300, "trainable_embeddings": true, "learning_rate": 0.0001, "batch_size": 16, "hidden_dim": 50, "modes": "max", "bidirectional": 0, "n_layers": 1, "best_epoch": 9, "f_score": 0.29623709623709626}

@@ -1,0 +1,1 @@
+{"model_name": "FNN", "max_len": 941, "vocab_size": 33790, "embedding_type": "ft", "embedding_dim": 300, "trainable_embeddings": false, "learning_rate": 0.01, "batch_size": 16, "hidden_dim": 100, "modes": "sum", "n_layers": 1, "best_epoch": 340, "f_score": 0.2944338342167953}
