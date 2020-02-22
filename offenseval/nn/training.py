@@ -84,14 +84,11 @@ def train(model, iterator, optimizer, criterion, get_target,
 
 
 def train_cycle(model, optimizer, criterion, scheduler,
-                train_it, dev_it, epochs, mean_threshold,
+                train_it, dev_it, epochs, get_target,
                 model_path, early_stopping_tolerance=5):
     best_valid_loss = float('inf')
 
     max_grad_norm = 1.0
-
-    def get_target(batch):
-        return 1. * (batch.avg > mean_threshold)
 
 
     pbar = tqdm(range(epochs), ncols=100)

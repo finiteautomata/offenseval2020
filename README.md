@@ -40,9 +40,30 @@ python bin/split_datasets.py --frac 0.2
 ```
 
 4. Train BERT
+
+Naming convention:
+
+`bert_model.lang.pt`
+
+`bert_model` can be `[bert_uncased, bert_cased]`
+
 ```
-python bin/train_bert.py models/bert.en.ft --train_path data/English/task_a_distant.sample.tsv --dev_path data/olid/olid-training-v1.0.tsv --test_path data/olid/test_a.tsv
+python bin/train_bert.py bert_cased models/bert_cased.en.pt \
+--train_path data/English/task_a_distant.sample.tsv \
+--dev_path data/olid/olid-training-v1.0.tsv \
+--test_path data/olid/test_a.tsv
 ```
+
+To test everything is working ok (using a micro dataset) run
+
+```
+python bin/train_bert.py bert_cased models/bert_test.en.pt \
+--train_path data/English/task_a_distant.xsmall.tsv \
+--dev_path data/English/task_a_distant.xsmall.tsv \
+--test_path data/English/task_a_distant.xsmall.tsv
+```
+
+
 ### Tests
 
 We use `pytest` for our tests. Just run
