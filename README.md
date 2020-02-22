@@ -47,11 +47,26 @@ Naming convention:
 
 `bert_model` can be `[bert_uncased, bert_cased]`
 
+To train a model for a specific language, just run
+
+```
+python bin/train_bert.py <bert_model> models/bert_cased.en.pt --lang <language> --epochs <epochs>
+```
+
+For instance, to train Danish model using cased BERT
+
+```
+python bin/train_bert.py bert_cased models/bert_cased.da.pt --lang danish --epochs 5
+```
+
+If you want to manually set the training, dev and test sets, you can use:
+
 ```
 python bin/train_bert.py bert_cased models/bert_cased.en.pt \
 --train_path data/English/task_a_distant.sample.tsv \
 --dev_path data/olid/olid-training-v1.0.tsv \
---test_path data/olid/test_a.tsv
+--test_path data/olid/test_a.tsv \
+--epochs <epochs>
 ```
 
 To test everything is working ok (using a micro dataset) run

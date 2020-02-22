@@ -14,7 +14,7 @@ from transformers import (
     AdamW, BertTokenizer, BertModel,
     get_constant_schedule_with_warmup
 )
-
+from offenseval.datasets import datasets
 from offenseval.nn import (
     Tokenizer,
     train, evaluate, train_cycle, save_model
@@ -109,9 +109,23 @@ def build_dataset(path, fields, mean_threshold):
     return data.Dataset(examples, fields.values())
 
 
+def get_paths(lang, train_path, dev_path, test_path):
+    if bool(lang) == bool(train_path and test_path and dev_path):
+        raise ValueError("You must define either --lang or --train_path, --dev_path, --test_path but not both")
+
+    if lang:
+        if lang not in datasets:
+            raise ValueError(f"lang must be one of {datasets.keys()}")
+
+        lang_datasets = datasets[lang]
+        return lang_datasets["train"], lang_datasets["dev"], lang_datasets["train"]
+    else:
+        return train_path, dev_path, test_path
+
+
 def train_bert(
-    model_name, output_path, train_path, dev_path, test_path,
-    epochs=5, mean_threshold=0.5):
+    model_name, output_path, train_path=None, dev_path=None, test_path=None,
+    lang=None, epochs=5, mean_threshold=0.5):
     """
     Train and save an RNN classifier
     Arguments
@@ -128,6 +142,10 @@ def train_bert(
     model_name: string
         Must be "bert_cased", "bert_uncased"
     """
+
+    train_path, dev_path, test_path = get_paths(
+        lang, train_path, dev_path, test_path
+    )
     print(f"\n\nTraining BERT using {train_path}. Testing against {dev_path}")
     print(f"Using mean threshold = {mean_threshold:.2f}")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -169,6 +187,7 @@ def train_bert(
         "text": ('text', TEXT),
         "subtask_a": ("subtask_a", SUBTASK_A)
     }
+
 
     train_dataset = build_dataset(train_path, fields, mean_threshold)
     dev_dataset = build_dataset(dev_path, fields, mean_threshold)
