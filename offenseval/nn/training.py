@@ -2,7 +2,7 @@
 import torch
 import random
 from sklearn.metrics import accuracy_score, f1_score
-from tqdm.autonotebook import tqdm
+from tqdm.auto import tqdm
 from .evaluation import evaluate
 
 def train(model, iterator, optimizer, criterion, get_target,
@@ -97,7 +97,7 @@ def train_cycle(model, optimizer, criterion, scheduler,
     epochs_without_improvement = 0
 
 
-    for epoch in pbar:
+    for epoch in range(epochs):
         print(f"\n\nEpoch {epoch}")
         try:
             train_loss, train_acc = train(

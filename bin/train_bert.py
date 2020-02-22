@@ -81,6 +81,29 @@ def build_examples(path, fields, mean_threshold):
 
 
 def build_dataset(path, fields, mean_threshold):
+    """
+    Builds a dataset from a TSV
+
+    Arguments:
+    ----------
+
+    path: a path
+        Path to csv
+
+    fields: dict of fields
+
+        Dictionary of the form:
+
+        {
+            "column_name_1": ["field_name_1", <data.Field>],
+            "column_name_2": ["field_name_1", <data.Field>],
+            ...
+        }
+
+    mean_threshold:
+        If a distant dataset is used, the threshold for offensiveness
+
+    """
     examples = build_examples(path, fields, mean_threshold)
     # Note: It is very strange how the fields are passed to these functions
     return data.Dataset(examples, fields.values())
