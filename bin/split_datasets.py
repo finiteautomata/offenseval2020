@@ -59,7 +59,10 @@ def split_datasets(frac=0.2, random_state=20202020):
         dir = os.path.dirname(path)
 
         print(f"{len(df)} instances read")
-        df_train, df_dev = train_test_split(df, test_size=frac, stratify=df["subtask_a"])
+        df_train, df_dev = train_test_split(
+            df, test_size=frac, stratify=df["subtask_a"],
+            random_state=random_state
+        )
 
         train_path = os.path.join(dir, "train.tsv")
         dev_path = os.path.join(dir, "dev.tsv")
