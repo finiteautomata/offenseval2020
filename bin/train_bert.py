@@ -14,7 +14,7 @@ from transformers import (
     AdamW, BertTokenizer, BertModel,
     get_constant_schedule_with_warmup
 )
-from offenseval.datasets import datasets
+from offenseval.datasets import datasets, build_dataset
 from offenseval.nn import (
     Tokenizer,
     train, evaluate, train_cycle, save_model
@@ -60,54 +60,6 @@ def create_criterion(train_dataset, device, use_class_weight=True):
 
     criterion = criterion.to(device)
     return criterion
-
-def build_examples(path, fields, mean_threshold):
-    """
-    Build a list of data.Example from a TSV
-
-    Tries to read accordingly if it has subtask_a, avg, text, tweet...
-    """
-    df = pd.read_table(path)
-    print(df.columns)
-    if "id" not in df.columns:
-        df["id"] = df[df.columns[0]]
-    if "average" in df.columns:
-        df["subtask_a"] = "NOT"
-        df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
-    if "tweet" in df.columns:
-        df["text"] = df["tweet"]
-    examples = [data.Example.fromdict(t.to_dict(), fields=fields) for _, t in df.iterrows()]
-    return examples
-
-
-def build_dataset(path, fields, mean_threshold):
-    """
-    Builds a dataset from a TSV
-
-    Arguments:
-    ----------
-
-    path: a path
-        Path to csv
-
-    fields: dict of fields
-
-        Dictionary of the form:
-
-        {
-            "column_name_1": ["field_name_1", <data.Field>],
-            "column_name_2": ["field_name_1", <data.Field>],
-            ...
-        }
-
-    mean_threshold:
-        If a distant dataset is used, the threshold for offensiveness
-
-    """
-    examples = build_examples(path, fields, mean_threshold)
-    # Note: It is very strange how the fields are passed to these functions
-    return data.Dataset(examples, fields.values())
-
 
 def get_paths(lang, train_path, dev_path, test_path):
     if bool(lang) == bool(train_path and test_path and dev_path):
