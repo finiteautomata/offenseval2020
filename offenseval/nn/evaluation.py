@@ -115,3 +115,14 @@ def evaluate_dataset(model, TEXT, test_path, batch_size=32):
     criterion = nn.BCEWithLogitsLoss()
 
     return evaluate(model, tqdm(test_it), criterion, get_target=lambda batch: batch.subtask_a)
+
+
+def predict_sentence(model, TEXT, sentence):
+    bert_tokenizer = TEXT.tokenize.__self__.bert_tokenizer
+    # a bit hacky...
+    device = next(model.parameters()).device
+
+    model.eval()
+    inp = torch.tensor(bert_tokenizer.encode(sentence)).view(1, -1).to(device)
+
+    return torch.sigmoid(model(inp)).item()
