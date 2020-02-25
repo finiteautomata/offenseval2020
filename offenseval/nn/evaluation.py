@@ -1,13 +1,26 @@
 import random
 import torch
 import torch.nn as nn
+from tqdm.auto import tqdm
 from torchtext import data
 from sklearn.metrics import accuracy_score, f1_score
 
-def evaluate(model, iterator, criterion, get_target):
+def get_outputs(model, iterator, criterion=None, get_target=None):
     """
-    Evaluates the model on the given iterator
+    Returns the loss and outputs of the model for the given iterator
+
+
+    Returns
+    -------
+    predicted_probas: torch.tensor
+        Predicted probabilities
+
+    labels: torch.tensor
+        True labels
     """
+    if not get_target:
+        get_target = lambda b: b.subtask_a.float()
+
     epoch_loss = 0
     model.eval()
     with torch.no_grad():
@@ -18,26 +31,40 @@ def evaluate(model, iterator, criterion, get_target):
             target = get_target(batch)
 
             predictions = model(text)
-            loss = criterion(predictions.squeeze(1), target.float())
+
+            if criterion:
+                loss = criterion(predictions.squeeze(1), target.float())
+                epoch_loss += loss.item()
 
             prob_predictions = torch.sigmoid(predictions)
-
             predicted_probas.append(prob_predictions)
             labels.append(target.cpu())
 
-            epoch_loss += loss.item()
+    predicted_probas = torch.cat(predicted_probas).cpu()
+    labels = torch.cat(labels).cpu()
 
-        predicted_probas = torch.cat(predicted_probas).cpu()
-        labels = torch.cat(labels).cpu()
+    if criterion:
+        return predicted_probas, labels, epoch_loss / len(iterator)
+    else:
+        return predicted_probas, labels
 
-        preds = torch.round(predicted_probas)
+def evaluate(model, iterator, criterion, get_target):
+    """
+    Evaluates the model on the given iterator
+    """
 
-        pos_f1 = f1_score(labels, preds)
-        neg_f1 = f1_score(1-labels, 1-preds)
-        avg_f1 = (pos_f1 + neg_f1) / 2
-        acc = accuracy_score(labels, preds)
+    predicted_probas, labels, loss = get_outputs(
+        model, iterator, criterion, get_target
+    )
 
-    return epoch_loss / len(iterator), acc, avg_f1, pos_f1, neg_f1
+    preds = torch.round(predicted_probas)
+
+    pos_f1 = f1_score(labels, preds)
+    neg_f1 = f1_score(1-labels, 1-preds)
+    avg_f1 = (pos_f1 + neg_f1) / 2
+    acc = accuracy_score(labels, preds)
+
+    return loss, acc, avg_f1, pos_f1, neg_f1
 
 
 def evaluate_dataset(model, TEXT, test_path, batch_size=32):
@@ -77,9 +104,9 @@ def evaluate_dataset(model, TEXT, test_path, batch_size=32):
 
     print("Building iterators")
 
-    test_it = data.BucketIterator(
+    test_it = data.Iterator(
         test_dataset, batch_size=batch_size, device=device,
-        sort_key = lambda x: len(x.text), sort_within_batch = True,
+        shuffle=False,
     )
 
     # OBSERVATION: Do not compare this loss with the one of the training!
@@ -87,4 +114,4 @@ def evaluate_dataset(model, TEXT, test_path, batch_size=32):
 
     criterion = nn.BCEWithLogitsLoss()
 
-    return evaluate(model, test_it, criterion, get_target=lambda batch: batch.subtask_a)
+    return evaluate(model, tqdm(test_it), criterion, get_target=lambda batch: batch.subtask_a)

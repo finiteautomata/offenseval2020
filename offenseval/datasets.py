@@ -40,7 +40,7 @@ datasets = {
     },
 }
 
-def build_examples(path, fields, mean_threshold):
+def build_examples(path, fields, mean_threshold=0.5):
     """
     Build a list of data.Example from a TSV
 
@@ -60,7 +60,7 @@ def build_examples(path, fields, mean_threshold):
     return examples
 
 
-def build_dataset(path, fields, mean_threshold):
+def build_dataset(path, fields, mean_threshold=0.5):
     """
     Builds a dataset from a TSV
 
