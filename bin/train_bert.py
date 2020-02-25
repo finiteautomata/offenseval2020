@@ -9,7 +9,6 @@ import pandas as pd
 from torchtext import data
 import torch.optim as optim
 import torch.nn as nn
-from sklearn.utils import compute_class_weight
 from transformers import (
     AdamW, BertTokenizer, BertModel,
     get_constant_schedule_with_warmup
@@ -17,9 +16,10 @@ from transformers import (
 from offenseval.datasets import datasets, build_dataset
 from offenseval.nn import (
     Tokenizer,
-    train, evaluate, train_cycle, save_model
+    train, evaluate, train_cycle, save_model, create_criterion
 )
 from offenseval.nn.models import BertSeqModel
+
 
 AVAILABLE_MODELS = {"bert_uncased", "bert_cased"}
 
@@ -44,22 +44,6 @@ def create_model_and_tokenizer(model_name, device):
     model = model.to(device)
 
     return model, bert_tokenizer
-
-def create_criterion(train_dataset, device, use_class_weight=True):
-    y = [row.subtask_a for row in train_dataset]
-
-    class_weights = compute_class_weight('balanced', ['NOT', 'OFF'], y)
-
-    # normalize it
-    class_weights = class_weights / class_weights[0]
-
-    if use_class_weight:
-        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([class_weights[1]]))
-    else:
-        criterion = nn.BCEWithLogitsLoss()
-
-    criterion = criterion.to(device)
-    return criterion
 
 def get_paths(lang, train_path, dev_path, test_path):
     if bool(lang) == bool(train_path and test_path and dev_path):
@@ -160,7 +144,7 @@ def train_bert(
 
     print("Creating optimizer, loss and scheduler")
 
-    criterion = create_criterion(train_dataset, device, use_class_weight=True)
+    criterion = create_criterion(device, weight_with=train_dataset)
     optimizer = AdamW(model.parameters(), lr=1e-5)
 
     num_training_steps = epochs * len(train_it)

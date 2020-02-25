@@ -2,8 +2,11 @@
 import torch
 import random
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.utils import compute_class_weight
+from torch import nn
 from tqdm.auto import tqdm
 from .evaluation import evaluate
+
 
 def train(model, iterator, optimizer, criterion, get_target,
           scheduler=None, max_grad_norm=None, ncols=500):
@@ -125,3 +128,31 @@ def train_cycle(model, optimizer, criterion, scheduler,
         except KeyboardInterrupt:
             print("Stopping training!")
             break
+
+
+def create_criterion(device, weight_with=None):
+    """
+    Creates a `torch.nn.BCEWithLogitsLoss`.
+
+    If weight_with is not None, uses class weight for the positive class
+
+    Arguments:
+    ----------
+
+    device: "cuda" or "cpu"
+
+    weight_with: data.Dataset
+    """
+    if weight_with:
+        y = [row.subtask_a for row in weight_with]
+
+        class_weights = compute_class_weight('balanced', ['NOT', 'OFF'], y)
+
+        # normalize it
+        class_weights = class_weights / class_weights[0]
+        criterion = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([class_weights[1]]))
+    else:
+        criterion = nn.BCEWithLogitsLoss()
+
+    criterion = criterion.to(device)
+    return criterion
