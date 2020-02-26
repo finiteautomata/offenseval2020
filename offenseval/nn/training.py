@@ -88,13 +88,13 @@ def train(model, iterator, optimizer, criterion, get_target,
 
 def train_cycle(model, optimizer, criterion, scheduler,
                 train_it, dev_it, epochs, get_target,
-                model_path, early_stopping_tolerance=5):
+                model_path, early_stopping_tolerance=5, ncols=500):
     best_valid_loss = float('inf')
 
     max_grad_norm = 1.0
 
 
-    pbar = tqdm(range(epochs), ncols=100)
+    pbar = tqdm(range(epochs), ncols=ncols)
     pbar.set_description("Epochs")
 
     epochs_without_improvement = 0
@@ -105,7 +105,7 @@ def train_cycle(model, optimizer, criterion, scheduler,
         try:
             train_loss, train_acc = train(
                 model, train_it, optimizer, criterion, get_target=get_target,
-                max_grad_norm=max_grad_norm, scheduler=scheduler, ncols=100
+                max_grad_norm=max_grad_norm, scheduler=scheduler, ncols=ncols
             )
             valid_loss, valid_acc, valid_f1, pos_f1, neg_f1 = evaluate(
                 model, dev_it, criterion, get_target=lambda batch: batch.subtask_a

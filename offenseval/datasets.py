@@ -40,24 +40,39 @@ datasets = {
     },
 }
 
-def build_examples(path, fields, mean_threshold=0.5):
+def build_examples(path_or_df, fields, mean_threshold=0.5):
     """
-    Build a list of data.Example from a TSV
+    Build a list of data.Example from TSV or dataframe
 
     Tries to read accordingly if it has subtask_a, avg, text, tweet...
-    """
-    df = pd.read_table(path)
 
-    if "id" not in df.columns:
-        df["id"] = df[df.columns[0]]
-    if "average" in df.columns:
-        df["subtask_a"] = "NOT"
-        df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
-    if "tweet" in df.columns:
-        df["text"] = df["tweet"]
+    Arguments:
+    ---------
+
+    path_or_df: path or pandas.Dataframe
+        If a path, expects a TSV to read examples from it.
+        If a pandas.Dataframe, uses it
+
+    fields: dict of column name -> data.Field
+
+    """
+    if type(path_or_df) is str:
+        path = path_or_df
+        df = pd.read_table(path)
+
+        if "id" not in df.columns:
+            df["id"] = df[df.columns[0]]
+        if "average" in df.columns:
+            df["subtask_a"] = "NOT"
+            df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
+        if "tweet" in df.columns:
+            df["text"] = df["tweet"]
+    else:
+        df = path_or_df
 
     examples = [data.Example.fromdict(t.to_dict(), fields=fields) for _, t in df.iterrows()]
     return examples
+
 
 
 def build_dataset(path, fields, mean_threshold=0.5):
