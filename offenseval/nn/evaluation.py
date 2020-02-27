@@ -67,7 +67,7 @@ def evaluate(model, iterator, criterion, get_target):
     return EvaluationReport(loss=loss, acc=acc, pos_f1=pos_f1, neg_f1=neg_f1)
 
 
-def evaluate_dataset(model, TEXT, test_path, batch_size=32):
+def evaluate_dataset(model, TEXT, test_path):
     """
     High level function that evaluates a model on a given dataset
 
@@ -105,7 +105,7 @@ def evaluate_dataset(model, TEXT, test_path, batch_size=32):
     print("Building iterators")
 
     test_it = data.Iterator(
-        test_dataset, batch_size=batch_size, device=device,
+        test_dataset, batch_size=1, device=device,
         shuffle=False,
     )
 

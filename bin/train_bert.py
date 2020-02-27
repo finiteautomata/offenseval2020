@@ -11,7 +11,7 @@ import torch.optim as optim
 import torch.nn as nn
 from transformers import (
     AdamW, BertTokenizer, BertModel,
-    get_constant_schedule_with_warmup
+    get_constant_schedule_with_warmup, get_linear_schedule_with_warmup
 )
 from offenseval.datasets import datasets, build_dataset
 from offenseval.nn import (
@@ -61,7 +61,8 @@ def get_paths(lang, train_path, dev_path, test_path):
 
 def train_bert(
     model_name, output_path, train_path=None, dev_path=None, test_path=None,
-    lang=None, epochs=5, mean_threshold=0.5):
+    lang=None, epochs=5, mean_threshold=0.5, use_class_weight=True, batch_size=32,
+    monitor="f1", schedule="linear", lr=1):
     """
     Train and save an RNN classifier
     Arguments
@@ -77,6 +78,18 @@ def train_bert(
 
     model_name: string
         Must be "bert_cased", "bert_uncased"
+
+    use_class_weight: bool (default True)
+        Use class weight in loss
+
+    monitor: "f1" or "loss"
+        Whether to monitor f1 or loss in early stopping regime
+
+    schedule: "linear" or "constant"
+        Linear or Constant Scheduler with Warmup
+
+    lr: float
+        Will be multiplied by 10^-5
     """
 
     train_path, dev_path, test_path = get_paths(
@@ -135,7 +148,7 @@ def train_bert(
 
     print("Building iterators")
 
-    BATCH_SIZE = 32
+    BATCH_SIZE = batch_size
 
     train_it, dev_it, test_it = data.BucketIterator.splits(
         (train_dataset, dev_dataset, test_dataset), batch_size=BATCH_SIZE, device=device,
@@ -144,16 +157,35 @@ def train_bert(
 
     print("Creating optimizer, loss and scheduler")
 
-    criterion = create_criterion(device, weight_with=train_dataset)
-    optimizer = AdamW(model.parameters(), lr=1e-5)
+    if use_class_weight:
+        print("Using BCE with class weight")
+        criterion = create_criterion(device, weight_with=train_dataset)
+    else:
+        print("Using BCE -- no class weight")
+        criterion = create_criterion(device)
+
+    print(f"Learning rate = {lr}e^-5")
+    optimizer = AdamW(model.parameters(), lr=lr * 1e-5)
 
     num_training_steps = epochs * len(train_it)
     num_warmup_steps = num_training_steps // 10
     warmup_proportion = float(num_warmup_steps) / float(num_training_steps)  # 0.1
 
-    scheduler = get_constant_schedule_with_warmup(
-        optimizer, num_warmup_steps=num_warmup_steps,
-    )
+    print(f"Monitoring {monitor}")
+
+    if schedule == "linear":
+        print("Using linear scheduler with warmup")
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, num_warmup_steps=num_warmup_steps,
+            num_training_steps=num_training_steps
+        )
+    elif schedule == "constant":
+        print("Using constant scheduler with warmup")
+        scheduler = get_constant_schedule_with_warmup(
+            optimizer, num_warmup_steps=num_warmup_steps,
+        )
+    else:
+        raise ValueError("schedule must be 'linear' or 'constant'")
 
     def get_target(batch):
         return batch.subtask_a.double()
@@ -162,6 +194,7 @@ def train_bert(
         model, optimizer, criterion, scheduler,
         train_it, dev_it, epochs, get_target=get_target,
         model_path=output_path, early_stopping_tolerance=5,
+        monitor=monitor,
     )
 
     print("\n\nLoading best-loss model")

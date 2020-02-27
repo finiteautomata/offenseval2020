@@ -79,7 +79,7 @@ def train(model, iterator, optimizer, criterion, get_target,
         # Update Pbar
         lr = optimizer.param_groups[0]["lr"]
 
-        desc = f"Loss {epoch_loss / (i+1):.3f} -- Acc {epoch_acc / (i+1):.3f} -- LR {lr:.5f}"
+        desc = f"Loss {epoch_loss / (i+1):.3f} -- Acc {epoch_acc / (i+1):.3f} -- LR {lr*1e5:.3f}e-5"
         pbar.set_description(desc)
 
     return epoch_loss / len(iterator), epoch_acc / len(iterator)
