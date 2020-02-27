@@ -168,14 +168,14 @@ def train_bert(
     model.load_state_dict(torch.load(output_path))
 
 
-    loss, acc, f1, pos_f1, neg_f1 = evaluate(model, dev_it, criterion, get_target=lambda batch: batch.subtask_a)
+    report = evaluate(model, dev_it, criterion, get_target=lambda batch: batch.subtask_a)
 
-    print(f'Val Loss: {loss:.3f}  Acc: {acc*100:.2f}% Macro F1: {f1:.3f} Pos F1 {pos_f1:.3f} Neg F1 {neg_f1:.3f}')
+    print(f'Val {report}')
 
 
-    loss, acc, f1, pos_f1, neg_f1 = evaluate(model, test_it, criterion, get_target=lambda batch: batch.subtask_a)
+    test_report = evaluate(model, test_it, criterion, get_target=lambda batch: batch.subtask_a)
 
-    print(f'Test Loss: {loss:.3f}  Acc: {acc*100:.2f}% Macro F1: {f1:.3f} Pos F1 {pos_f1:.3f} Neg F1 {neg_f1:.3f}')
+    print(f'Test {report}')
 
     save_model(model, TEXT, output_path)
 

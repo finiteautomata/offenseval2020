@@ -4,6 +4,7 @@ import torch.nn as nn
 from tqdm.auto import tqdm
 from torchtext import data
 from sklearn.metrics import accuracy_score, f1_score
+from .report import EvaluationReport
 
 def get_outputs(model, iterator, criterion=None, get_target=None):
     """
@@ -61,10 +62,9 @@ def evaluate(model, iterator, criterion, get_target):
 
     pos_f1 = f1_score(labels, preds)
     neg_f1 = f1_score(1-labels, 1-preds)
-    avg_f1 = (pos_f1 + neg_f1) / 2
     acc = accuracy_score(labels, preds)
 
-    return loss, acc, avg_f1, pos_f1, neg_f1
+    return EvaluationReport(loss=loss, acc=acc, pos_f1=pos_f1, neg_f1=neg_f1)
 
 
 def evaluate_dataset(model, TEXT, test_path, batch_size=32):

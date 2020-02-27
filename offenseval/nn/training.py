@@ -87,18 +87,41 @@ def train(model, iterator, optimizer, criterion, get_target,
 
 
 def train_cycle(model, optimizer, criterion, scheduler,
-                train_it, dev_it, epochs, get_target,
-                model_path, early_stopping_tolerance=5, ncols=500):
-    best_valid_loss = float('inf')
+                train_it, dev_it, epochs, get_target, model_path,
+                monitor="f1", early_stopping_tolerance=5, ncols=100):
+    """
 
-    max_grad_norm = 1.0
+    Arguments:
+
+    monitor: "f1" or "loss"
+        What to monitor for Early Stopping
+    """
+
+    if monitor not in {"loss", "f1"}:
+        raise ValueError("Monitor should be 'loss' or 'f1'")
 
 
     pbar = tqdm(range(epochs), ncols=ncols)
     pbar.set_description("Epochs")
 
     epochs_without_improvement = 0
+    best_report = None
+    max_grad_norm = 1.0
 
+    def improves_performance(best_report, report):
+        if best_report is None:
+            return True
+
+        if monitor == "loss":
+            if report.loss < best_report.loss:
+                return True
+            else:
+                return False
+        elif monitor == "f1":
+            if report.macro_f1 > best_report.macro_f1:
+                return True
+            else:
+                return False
 
     for epoch in range(epochs):
         print(f"\n\nEpoch {epoch}")
@@ -107,19 +130,19 @@ def train_cycle(model, optimizer, criterion, scheduler,
                 model, train_it, optimizer, criterion, get_target=get_target,
                 max_grad_norm=max_grad_norm, scheduler=scheduler, ncols=ncols
             )
-            valid_loss, valid_acc, valid_f1, pos_f1, neg_f1 = evaluate(
+            report = evaluate(
                 model, dev_it, criterion, get_target=lambda batch: batch.subtask_a
             )
 
             desc = f'Train: Loss: {train_loss:.3f} Acc: {train_acc*100:.2f}%'
-            desc += f'\nVal. Loss: {valid_loss:.3f} Acc: {valid_acc*100:.2f}% Macro F1 {valid_f1:.3f} (P {pos_f1:.3f} - N {neg_f1:.3f})'
+            desc += f'\nVal.' + str(report)
 
             print(desc)
-            if valid_loss < best_valid_loss:
-                best_valid_loss = valid_loss
+            if improves_performance(best_report, report):
+                best_report = report
                 epochs_without_improvement = 0
                 torch.save(model.state_dict(), model_path)
-                print(f"Best model so far (Loss {best_valid_loss:.3f} - Acc {valid_acc:.3f}, F1 {valid_f1:.3f}) saved at {model_path}")
+                print(f"Best model so far ({report}) saved at {model_path}")
             else:
                 epochs_without_improvement += 1
                 if epochs_without_improvement >= early_stopping_tolerance:
