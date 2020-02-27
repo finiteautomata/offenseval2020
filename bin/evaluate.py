@@ -30,12 +30,12 @@ def evaluate_model(model_path, test_path, batch_size=32):
     model, TEXT = load_model(model_path, device=device)
 
 
-    loss, acc, f1, pos_f1, neg_f1 = evaluate_dataset(
+    report = evaluate_dataset(
         model, TEXT, test_path, batch_size
     )
 
     print("OBSERVATION: Do not compare this loss with the one of the training! This is not weighted")
-    print(f'Test Loss: {loss:.3f}  Acc: {acc*100:.2f}% Macro F1: {f1:.3f} Pos F1 {pos_f1:.3f} Neg F1 {neg_f1:.3f}')
+    print(report)
 
 if __name__ == "__main__":
     fire.Fire(evaluate_model)
