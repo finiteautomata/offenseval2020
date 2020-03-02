@@ -60,15 +60,16 @@ def build_examples(path_or_df, fields, mean_threshold=0.5):
         path = path_or_df
         df = pd.read_table(path)
 
-        if "id" not in df.columns:
-            df["id"] = df[df.columns[0]]
-        if "average" in df.columns:
-            df["subtask_a"] = "NOT"
-            df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
-        if "tweet" in df.columns:
-            df["text"] = df["tweet"]
     else:
         df = path_or_df
+
+    if "id" not in df.columns:
+        df["id"] = df[df.columns[0]]
+    if "average" in df.columns:
+        df["subtask_a"] = "NOT"
+        df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
+    if "tweet" in df.columns:
+        df["text"] = df["tweet"]
 
     examples = [data.Example.fromdict(t.to_dict(), fields=fields) for _, t in df.iterrows()]
     return examples
@@ -101,4 +102,25 @@ def build_dataset(path, fields, mean_threshold=0.5):
     """
     examples = build_examples(path, fields, mean_threshold)
     # Note: It is very strange how the fields are passed to these functions
+    return data.Dataset(examples, fields.values())
+
+def build_train_dataset(langs, fields, mean_threshold=0.5):
+    """
+    Convenient method to build train dataset out of many languages
+
+    langs: list of strings
+        List of languages to consume
+
+    fields: list of data.Fields
+        Fields to build the datasets with
+
+    mean_threshold: float
+        Threshold to use if distant dataset given
+    """
+    examples = []
+
+    for lang in langs:
+        df = pd.read_table(datasets[lang]["train"])
+        examples += build_examples(df, fields)
+
     return data.Dataset(examples, fields.values())

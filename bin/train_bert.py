@@ -13,7 +13,7 @@ from transformers import (
     AdamW, BertTokenizer, BertModel,
     get_constant_schedule_with_warmup, get_linear_schedule_with_warmup
 )
-from offenseval.datasets import datasets, build_dataset
+from offenseval.datasets import datasets, build_dataset, build_train_dataset
 from offenseval.nn import (
     Tokenizer,
     train, evaluate, train_cycle, save_model, create_criterion
@@ -45,19 +45,66 @@ def create_model_and_tokenizer(model_name, device):
 
     return model, bert_tokenizer
 
-def get_paths(lang, train_path, dev_path, test_path):
-    if bool(lang) == bool(train_path and test_path and dev_path):
-        raise ValueError("You must define either --lang or --train_path, --dev_path, --test_path but not both")
+def build_datasets(
+    fields, mean_threshold=None,
+    lang=None, train_path=None, dev_path=None, test_path=None,
+    ):
+    if bool(lang) == bool(train_path):
+        raise ValueError("You must define either --lang or --train_path")
+
+    ret = []
 
     if lang:
-        if lang not in datasets:
-            raise ValueError(f"lang must be one of {datasets.keys()}")
+        if type(lang) is str:
+            """
+            Single language
+            """
+            langs = [lang]
+        else:
+            langs = lang
 
-        lang_datasets = datasets[lang]
-        return lang_datasets["train"], lang_datasets["dev"], lang_datasets["train"]
+        for lang in langs:
+            if lang not in datasets:
+                raise ValueError(f"lang must be one of {datasets.keys()}")
+
+        print(f"Building from langs {' '.join(langs)}")
+        ret.append(build_train_dataset(langs, fields, mean_threshold))
+
+        if dev_path:
+            print(f"Using dev set {dev_path}")
+            ret.append(build_dataset(dev_path, fields, mean_threshold))
+        else:
+
+            print(f"Using dev lang {langs[0]}")
+            ret.append(
+                build_dataset(
+                    datasets[langs[0]]["dev"],
+                    fields,
+                    mean_threshold
+                )
+            )
+
+        if test_path:
+            print(f"Using dev set {test_path}")
+            ret.append(build_dataset(test_path, fields, mean_threshold))
+        else:
+            print(f"Using test lang {langs[0]}")
+            ret.append(
+                build_dataset(
+                    datasets[langs[0]]["test"],
+                    fields,
+                    mean_threshold
+                )
+            )
+
     else:
-        return train_path, dev_path, test_path
+        ret = []
+        ret.append(build_dataset(train_path, fields, mean_threshold))
+        ret.append(build_dataset(dev_path, fields, mean_threshold))
+        if test_path:
+            ret.append(build_dataset(test_path, fields, mean_threshold))
 
+    return tuple(ret)
 
 def train_bert(
     model_name, output_path, train_path=None, dev_path=None, test_path=None,
@@ -92,11 +139,6 @@ def train_bert(
         Will be multiplied by 10^-5
     """
 
-    train_path, dev_path, test_path = get_paths(
-        lang, train_path, dev_path, test_path
-    )
-    print(f"\n\nTraining BERT using {train_path}. Testing against {dev_path}")
-    print(f"Using mean threshold = {mean_threshold:.2f}")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     print("\nCreating model...")
@@ -137,10 +179,14 @@ def train_bert(
         "subtask_a": ("subtask_a", SUBTASK_A)
     }
 
+    #print(f"\n\nTraining BERT using {train_path}. Testing against {dev_path}")
+    #print(f"Using mean threshold = {mean_threshold:.2f}")
 
-    train_dataset = build_dataset(train_path, fields, mean_threshold)
-    dev_dataset = build_dataset(dev_path, fields, mean_threshold)
-    test_dataset = build_dataset(test_path, fields, mean_threshold)
+    train_dataset, dev_dataset, test_dataset = build_datasets(
+        lang=lang, train_path=train_path, dev_path=dev_path,
+        test_path=test_path, fields=fields, mean_threshold=mean_threshold,
+    )
+
 
     SUBTASK_A.build_vocab(dev_dataset)
     print(SUBTASK_A.vocab.itos)

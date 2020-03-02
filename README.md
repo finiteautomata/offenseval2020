@@ -59,6 +59,12 @@ For instance, to train Danish model using cased BERT
 python bin/train_bert.py bert_cased models/bert_cased.da.pt --lang danish --epochs 5
 ```
 
+Multilanguage train can be performed in the following way. Dev set is taken from the first language given
+
+```
+python bin/train_bert.py bert_cased models/bert_cased.da+en.pt --lang [danish,olid] --epochs 10 --lr 2
+```
+
 If you want to manually set the training, dev and test sets, you can use:
 
 ```
