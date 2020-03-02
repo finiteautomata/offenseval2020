@@ -104,11 +104,12 @@ def build_datasets(
         if test_path:
             ret.append(build_dataset(test_path, fields, mean_threshold))
 
+    print(f"Training on {len(ret[0]) / 1000:.3f}K instances")
     return tuple(ret)
 
 def train_bert(
     model_name, output_path, train_path=None, dev_path=None, test_path=None,
-    lang=None, epochs=5, mean_threshold=0.5, use_class_weight=True, batch_size=32,
+    lang=None, epochs=5, mean_threshold=0.15, use_class_weight=True, batch_size=32,
     monitor="f1", schedule="linear", lr=1):
     """
     Train and save an RNN classifier

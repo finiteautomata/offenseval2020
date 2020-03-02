@@ -1,6 +1,7 @@
 import os
 import pathlib
 import pandas as pd
+from tqdm.auto import tqdm
 from torchtext import data
 
 # Gets the
@@ -40,7 +41,7 @@ datasets = {
     },
 }
 
-def build_examples(path_or_df, fields, mean_threshold=0.5):
+def build_examples(path_or_df, fields, mean_threshold=0.15):
     """
     Build a list of data.Example from TSV or dataframe
 
@@ -66,12 +67,16 @@ def build_examples(path_or_df, fields, mean_threshold=0.5):
     if "id" not in df.columns:
         df["id"] = df[df.columns[0]]
     if "average" in df.columns:
+        df = df[abs(df["average"] - 0.5) > mean_threshold].copy()
         df["subtask_a"] = "NOT"
-        df.loc[df["average"] > mean_threshold, "subtask_a"] = "OFF"
+        df.loc[df["average"] > 0.5, "subtask_a"] = "OFF"
     if "tweet" in df.columns:
         df["text"] = df["tweet"]
 
-    examples = [data.Example.fromdict(t.to_dict(), fields=fields) for _, t in df.iterrows()]
+    examples = []
+    for _, t in tqdm(df.iterrows(), total=len(df)):
+        examples.append(data.Example.fromdict(t.to_dict(), fields=fields))
+
     return examples
 
 
