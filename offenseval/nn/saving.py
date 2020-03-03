@@ -20,8 +20,13 @@ def load_model(model_path, device):
     base, _ = os.path.splitext(model_path)
     vocab_path = f"{base}.vocab.pkl"
 
-    with open(vocab_path, "rb") as f:
-        TEXT = pickle.load(f)
+    try:
+        with open(vocab_path, "rb") as f:
+            TEXT = pickle.load(f)
+    except FileNotFoundError as e:
+        print(e)
+        print("Returning null TEXT")
+        TEXT = None
 
     model = torch.load(model_path, map_location=device)
 

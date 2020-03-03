@@ -16,7 +16,8 @@ from transformers import (
 from offenseval.datasets import datasets, build_dataset, build_train_dataset
 from offenseval.nn import (
     Tokenizer,
-    train, evaluate, train_cycle, save_model, create_criterion
+    train, evaluate, train_cycle, save_model, create_criterion,
+    create_bert_fields
 )
 from offenseval.nn.models import BertSeqModel
 
@@ -147,31 +148,8 @@ def train_bert(
 
     print("Reading and tokenizing data...")
 
-    init_token_idx = bert_tokenizer.cls_token_id
-    eos_token_idx = bert_tokenizer.sep_token_id
-    pad_token_idx = bert_tokenizer.pad_token_id
-    unk_token_idx = bert_tokenizer.unk_token_id
 
-    # Trying to cut this down to check if this improves memory usage
-
-    tokenizer = Tokenizer(bert_tokenizer)
-
-    ID = data.Field(sequential=False, use_vocab=False)
-    # All these arguments are because these are really floats
-    # See https://github.com/pytorch/text/issues/78#issuecomment-541203609
-    SUBTASK_A = data.LabelField()
-
-    TEXT = data.Field(
-        tokenize=tokenizer.tokenize,
-        include_lengths = True,
-        use_vocab=False,
-        batch_first = True,
-        preprocessing = tokenizer.convert_tokens_to_ids,
-        init_token = init_token_idx,
-        eos_token = eos_token_idx,
-        pad_token = pad_token_idx,
-        unk_token = unk_token_idx
-    )
+    ID, SUBTASK_A, TEXT = create_bert_fields(bert_tokenizer)
 
 
     fields = {
