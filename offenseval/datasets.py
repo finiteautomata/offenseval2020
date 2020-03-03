@@ -129,3 +129,68 @@ def build_train_dataset(langs, fields, mean_threshold=0.5):
         examples += build_examples(df, fields)
 
     return data.Dataset(examples, fields.values())
+
+def build_datasets(
+    fields, mean_threshold=None,
+    lang=None, train_path=None, dev_path=None, test_path=None,
+    ):
+    if bool(lang) == bool(train_path):
+        raise ValueError("You must define either --lang or --train_path")
+
+    ret = []
+
+    if lang:
+        if type(lang) is str:
+            """
+            Single language
+            """
+            if lang == "all":
+                langs = ["olid", "danish", "turkish", "arabic", "greek"]
+            else:
+                langs = [lang]
+        else:
+            langs = lang
+
+        for lang in langs:
+            if lang not in datasets:
+                raise ValueError(f"lang must be one of {datasets.keys()}")
+
+        print(f"Building from langs {' '.join(langs)}")
+        ret.append(build_train_dataset(langs, fields, mean_threshold))
+
+        if dev_path:
+            print(f"Using dev set {dev_path}")
+            ret.append(build_dataset(dev_path, fields, mean_threshold))
+        else:
+
+            print(f"Using dev lang {langs[0]}")
+            ret.append(
+                build_dataset(
+                    datasets[langs[0]]["dev"],
+                    fields,
+                    mean_threshold
+                )
+            )
+
+        if test_path:
+            print(f"Using dev set {test_path}")
+            ret.append(build_dataset(test_path, fields, mean_threshold))
+        else:
+            print(f"Using test lang {langs[0]}")
+            ret.append(
+                build_dataset(
+                    datasets[langs[0]]["test"],
+                    fields,
+                    mean_threshold
+                )
+            )
+
+    else:
+        ret = []
+        ret.append(build_dataset(train_path, fields, mean_threshold))
+        ret.append(build_dataset(dev_path, fields, mean_threshold))
+        if test_path:
+            ret.append(build_dataset(test_path, fields, mean_threshold))
+
+    print(f"Training on {len(ret[0]) / 1000:.3f}K instances")
+    return tuple(ret)
