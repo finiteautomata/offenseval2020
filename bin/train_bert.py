@@ -106,6 +106,8 @@ def train_bert(
         test_path=test_path, fields=fields, mean_threshold=mean_threshold,
     )
 
+    # For time being, ignore test dataset
+    test_dataset = dev_dataset
 
     SUBTASK_A.build_vocab(dev_dataset)
     print(SUBTASK_A.vocab.itos)

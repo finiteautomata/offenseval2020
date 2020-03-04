@@ -2,8 +2,10 @@
 Script to train a BERT model
 """
 import os
-from datetime import datetime
+import subprocess
+import csv
 import fire
+from datetime import datetime
 import torch
 import pandas as pd
 from tqdm.auto import tqdm
@@ -14,6 +16,9 @@ from offenseval.nn import (
 )
 from offenseval.datasets import build_dataset
 
+def get_num_lines(test_path):
+    with open(test_path, "r") as f:
+         return len([1 for l in f])
 
 
 def generate_submission(model_path, test_path, output_path, batch_size=1):
@@ -63,7 +68,15 @@ def generate_submission(model_path, test_path, output_path, batch_size=1):
 
     predicted_labels = torch.cat(predicted_labels).cpu().numpy()
     #
-    df_test = pd.read_table(test_path, index_col=0)
+    df_test = pd.read_table(test_path, index_col=0, quoting=csv.QUOTE_NONE)
+
+    # Checking number of lines
+    num_lines = get_num_lines(test_path)
+    if (num_lines-1) != df_test.shape[0] or (num_lines-1) != predicted_labels.shape[0]:
+        raise ValueError(
+            f"Mismatch in lines: {num_lines-1} in table, {df_test.shape[0]} read from pandas, {predicted_labels.shape[0]} predictions"
+        )
+
     df_test["pred"] = 'NOT'
     df_test.loc[predicted_labels.reshape(-1) > 0, "pred"] = "OFF"
 
@@ -73,6 +86,6 @@ def generate_submission(model_path, test_path, output_path, batch_size=1):
     os.system(f"zip -r {output_path}.zip {output_path}")
 
     print(f"{len(df_test)} saved to {output_path}")
-    
+
 if __name__ == "__main__":
     fire.Fire(generate_submission)

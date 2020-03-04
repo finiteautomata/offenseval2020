@@ -1,4 +1,5 @@
 import os
+import csv
 import pathlib
 import pandas as pd
 from tqdm.auto import tqdm
@@ -12,7 +13,7 @@ datasets = {
     "english": {
         "train": os.path.join(_data_dir, "English", "task_a_distant.tsv"),
         "dev": os.path.join(_data_dir, "olid", "olid-training-v1.0.tsv"),
-        "test":  os.path.join(_data_dir, "olid", "test_a.tsv"),
+        "test":  os.path.join(_data_dir, "English", "test.tsv"),
     },
     "olid": {
         "train": os.path.join(_data_dir, "olid", "olid-training-v1.0.tsv"),
@@ -22,22 +23,22 @@ datasets = {
     "danish": {
         "train": os.path.join(_data_dir, "Danish", "train.tsv"),
         "dev": os.path.join(_data_dir, "Danish", "dev.tsv"),
-        "test":  os.path.join(_data_dir, "Danish", "dev.tsv"),
+        "test":  os.path.join(_data_dir, "Danish", "test.tsv"),
     },
     "greek": {
         "train": os.path.join(_data_dir, "Greek", "train.tsv"),
         "dev": os.path.join(_data_dir, "Greek", "dev.tsv"),
-        "test":  os.path.join(_data_dir, "Greek", "dev.tsv"),
+        "test":  os.path.join(_data_dir, "Greek", "test.tsv"),
     },
     "arabic": {
         "train": os.path.join(_data_dir, "Arabic", "offenseval-ar-training-v1.tsv"),
         "dev": os.path.join(_data_dir, "Arabic", "offenseval-ar-dev-v1.tsv"),
-        "test":  os.path.join(_data_dir, "Arabic", "offenseval-ar-dev-v1.tsv"),
+        "test":  os.path.join(_data_dir, "Arabic", "test.tsv"),
     },
     "turkish": {
         "train": os.path.join(_data_dir, "Turkish", "train.tsv"),
         "dev": os.path.join(_data_dir, "Turkish", "dev.tsv"),
-        "test":  os.path.join(_data_dir, "Turkish", "dev.tsv"),
+        "test":  os.path.join(_data_dir, "Turkish", "test.tsv"),
     },
 }
 
@@ -59,8 +60,7 @@ def build_examples(path_or_df, fields, mean_threshold=0.15):
     """
     if type(path_or_df) is str:
         path = path_or_df
-        df = pd.read_table(path)
-
+        df = pd.read_table(path, quoting=csv.QUOTE_NONE)
     else:
         df = path_or_df
 
@@ -125,7 +125,7 @@ def build_train_dataset(langs, fields, mean_threshold=0.5):
     examples = []
 
     for lang in langs:
-        df = pd.read_table(datasets[lang]["train"])
+        df = pd.read_table(datasets[lang]["train"], quoting=csv.QUOTE_NONE)
         examples += build_examples(df, fields)
 
     return data.Dataset(examples, fields.values())
@@ -162,7 +162,6 @@ def build_datasets(
             print(f"Using dev set {dev_path}")
             ret.append(build_dataset(dev_path, fields, mean_threshold))
         else:
-
             print(f"Using dev lang {langs[0]}")
             ret.append(
                 build_dataset(
