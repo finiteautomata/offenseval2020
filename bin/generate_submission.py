@@ -83,7 +83,7 @@ def generate_submission(model_path, test_path, output_path, batch_size=1):
     out = df_test["pred"]
     out.to_csv(output_path, header=False)
 
-    os.system(f"zip -r {output_path}.zip {output_path}")
+    os.system(f"zip -j -r {output_path}.zip {output_path}")
 
     print(f"{len(df_test)} saved to {output_path}")
 
