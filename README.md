@@ -84,6 +84,19 @@ python bin/train_bert.py bert_cased models/bert_test.en.pt \
 --test_path data/English/task_a_distant.xsmall.tsv
 ```
 
+### Generate submissions
+
+Run this command. This automatically generates a zip file in the same place of the output file
+
+```
+python bin/generate_submission.py <model> <test file> <output>
+```
+
+For instance
+
+```
+python bin/generate_submission.py models/bert_cased.all.pt data/Turkish/test.tsv submissions/Turkish/bert_cased.all.turkish.csv  
+```
 
 ### Tests
 
