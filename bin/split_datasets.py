@@ -4,6 +4,7 @@ Script to split dataset into train, dev, test, and a small sample of train
 import fire
 import os
 import json
+import csv
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -15,7 +16,10 @@ def merge_olid():
     """
     print("\n\nMerging OLID test set and labels...")
 
-    df_test = pd.read_table("data/olid/testset-levela.tsv", index_col=0)
+    df_test = pd.read_table(
+        "data/olid/testset-levela.tsv",
+        index_col=0, quoting=csv.QUOTE_NONE
+    )
 
     labels_a = pd.read_csv(
         "data/olid/labels-levela.csv",
@@ -53,7 +57,7 @@ def split_datasets(frac=0.2, random_state=20202020):
 
     for path in files:
         print(f"\nSplitting {path}")
-        df = pd.read_table(path, index_col=0)
+        df = pd.read_table(path, index_col=0, quoting=csv.QUOTE_NONE)
         # Remove possibly null lines
         df = df[df["tweet"].notna()]
         dir = os.path.dirname(path)
