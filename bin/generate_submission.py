@@ -39,7 +39,7 @@ def get_test_and_output_path(model_path, test_path, output_path, lang):
         output_path = os.path.join(
             "submissions",
             lang.capitalize(),
-            f"{without_ext}.csv"
+            f"{without_ext}.{lang}.csv"
         )
 
     return test_path, output_path
