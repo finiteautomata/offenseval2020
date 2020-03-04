@@ -14,14 +14,38 @@ from offenseval.nn import (
     Tokenizer,
     train, evaluate_dataset, train_cycle, save_model, load_model
 )
-from offenseval.datasets import build_dataset
+from offenseval.datasets import build_dataset, datasets
 
 def get_num_lines(test_path):
     with open(test_path, "r") as f:
          return len([1 for l in f])
 
+def get_test_and_output_path(model_path, test_path, output_path, lang):
+    if not test_path:
+        if not lang:
+            raise ValueError("lang must be provided if no test_path given")
+        try:
+            test_path = datasets[lang]["test"]
+        except KeyError:
+            print(f"lang must be in {datasets.keys()}")
 
-def generate_submission(model_path, test_path, output_path, batch_size=1):
+    if not output_path:
+        if not lang or lang not in datasets.keys():
+            raise ValueError("lang must be provided if not output_path -- and must be valid language")
+
+
+        model_name = os.path.basename(model_path)
+        without_ext = os.path.splitext(model_name)[0]
+        output_path = os.path.join(
+            "submissions",
+            lang.capitalize(),
+            f"{without_ext}.csv"
+        )
+
+    return test_path, output_path
+
+
+def generate_submission(model_path, test_path=None, output_path=None, lang=None, batch_size=1):
     """
     Generate submission from model and test file
     Arguments
@@ -35,7 +59,9 @@ def generate_submission(model_path, test_path, output_path, batch_size=1):
 
     output_path: path to output
     """
+    test_path, output_path = get_test_and_output_path(model_path, test_path, output_path, lang)
     print(f"\nGenerating submission for model at {model_path} against {test_path}")
+    print(f"Saving at {output_path}")
     print("Loading model...")
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model, TEXT = load_model(model_path, device=device)

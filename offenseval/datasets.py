@@ -12,7 +12,7 @@ _data_dir = os.path.join(_base_dir, "data")
 datasets = {
     "english": {
         "train": os.path.join(_data_dir, "English", "task_a_distant.tsv"),
-        "dev": os.path.join(_data_dir, "olid", "olid-training-v1.0.tsv"),
+        "dev": os.path.join(_data_dir, "olid", "test_a.tsv"),
         "test":  os.path.join(_data_dir, "English", "test.tsv"),
     },
     "olid": {
@@ -178,7 +178,7 @@ def build_datasets(
             print(f"Using test lang {langs[0]}")
             ret.append(
                 build_dataset(
-                    datasets[langs[0]]["test"],
+                    datasets[langs[0]]["dev"],
                     fields,
                     mean_threshold
                 )

@@ -51,7 +51,7 @@ def create_model_and_tokenizer(model_name, device):
 def train_bert(
     model_name, output_path, train_path=None, dev_path=None, test_path=None,
     lang=None, epochs=5, mean_threshold=0.15, use_class_weight=True, batch_size=32,
-    monitor="f1", schedule="linear", lr=1):
+    monitor="f1", schedule="linear", lr=5):
     """
     Train and save an RNN classifier
     Arguments
