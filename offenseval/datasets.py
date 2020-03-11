@@ -8,7 +8,7 @@ from torchtext import data
 # Gets the
 _base_dir = pathlib.Path(__file__).parent.absolute().parent
 _data_dir = os.path.join(_base_dir, "data")
-
+_trans_dir = os.path.join(_data_dir, "translations")
 datasets = {
     "english": {
         "train": os.path.join(_data_dir, "English", "task_a_distant.tsv"),
@@ -39,6 +39,20 @@ datasets = {
         "train": os.path.join(_data_dir, "Turkish", "train.tsv"),
         "dev": os.path.join(_data_dir, "Turkish", "dev.tsv"),
         "test":  os.path.join(_data_dir, "Turkish", "test.tsv"),
+    },
+
+
+    "danish-trans": {
+        "train": os.path.join(_trans_dir, "Danish", "train.tsv"),
+    },
+    "greek-trans": {
+        "train": os.path.join(_trans_dir, "Greek", "train.tsv"),
+    },
+    "arabic-trans": {
+        "train": os.path.join(_trans_dir, "Arabic", "train.tsv"),
+    },
+    "turkish-trans": {
+        "train": os.path.join(_trans_dir, "Turkish", "train.tsv"),
     },
 }
 
@@ -146,6 +160,11 @@ def build_datasets(
             """
             if lang == "all":
                 langs = ["olid", "danish", "turkish", "arabic", "greek"]
+            elif lang == "all+trans":
+                langs = [
+                    "olid", "danish", "turkish", "arabic", "greek",
+                    "danish-trans", "turkish-trans", "arabic-trans", "greek-trans",    
+                ]
             else:
                 langs = [lang]
         else:
