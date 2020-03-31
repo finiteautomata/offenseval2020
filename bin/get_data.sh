@@ -59,3 +59,12 @@ mv Turkish/offenseval-tr-testset-v1.tsv Turkish/test.tsv
 mv Danish/offenseval-da-test-v1-nolabels.tsv Danish/test.tsv
 mv English/test_a_tweets.tsv English/test.tsv
 mv English/test_b_tweets.tsv English/test_b.tsv
+
+
+######################################
+###          Gold labels           ###
+######################################
+
+mkdir gold && cd gold
+wget https://sites.google.com/site/offensevalsharedtask/results-and-paper-submission/OffensEvalGoldLabels.zip
+unzip OffensEvalGoldLabels.zip

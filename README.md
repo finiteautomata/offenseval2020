@@ -25,6 +25,12 @@ pipenv sync
 
 Now, in `data/<LANGUAGE>` you will have the datasets for each language.
 
+**NOTE**: Add gold labels to test sets by executing:
+
+```
+python bin/add_gold_labels.py
+```
+
 2. Install `jupyter` extension for `ipywidgets`
 
 ```
