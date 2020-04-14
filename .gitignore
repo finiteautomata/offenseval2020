@@ -130,3 +130,5 @@ dmypy.json
 data/*
 models/*
 *.zip
+notebooks/**/*.csv
+notebooks/**/*.tsv
