@@ -89,7 +89,20 @@ def evaluate_dataset(model, TEXT, test_path):
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Loading dataset...")
-    ID = data.Field(sequential=False, use_vocab=False)
+    def remove_first_letter(identifier):
+        """
+        If ID is "A1234" => returns "1234"
+        """
+        if type(identifier) is str and identifier[0].isalpha():
+            return identifier[1:]
+        else:
+            return identifier
+
+    ID = data.Field(
+        sequential=False,
+        use_vocab=False,
+        preprocessing=remove_first_letter,
+    )
     SUBTASK_A = data.LabelField()
 
     test_dataset = data.TabularDataset(
