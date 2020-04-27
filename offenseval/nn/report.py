@@ -6,21 +6,26 @@ class EvaluationReport:
     Class that serves as an EvaluationReport of a model
     """
     @classmethod
-    def from_preds_and_labels(cls, preds, labels):
-        if type(preds) is torch.Tensor:
-            preds = preds.numpy()
+    def from_probas_and_labels(cls, probas, labels, loss=None):
+
+        preds = torch.round(probas).numpy()
         pos_f1 = f1_score(labels, preds)
         neg_f1 = f1_score(1-labels, 1-preds)
         acc = accuracy_score(labels, preds)
 
-        return cls(acc=acc, pos_f1=pos_f1, neg_f1=neg_f1)
+        return cls(
+            loss=loss, acc=acc, pos_f1=pos_f1, neg_f1=neg_f1,
+            probas=probas, labels=labels
+        )
 
-    def __init__(self, acc, pos_f1, neg_f1, loss=None):
+    def __init__(self, acc, pos_f1, neg_f1, loss=None, probas=None, labels=None):
         self.macro_f1 = (pos_f1 + neg_f1) / 2
         self.pos_f1 = pos_f1
         self.neg_f1 = neg_f1
         self.loss = loss
         self.acc = acc
+        self.probas = probas
+        self.labels = labels
 
 
     def __repr__(self):

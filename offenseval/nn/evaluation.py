@@ -5,6 +5,7 @@ from tqdm.auto import tqdm
 from torchtext import data
 from sklearn.metrics import accuracy_score, f1_score
 from .report import EvaluationReport
+from .fields import create_bert_fields
 
 def get_outputs(model, iterator, criterion=None, get_target=None):
     """
@@ -44,27 +45,17 @@ def get_outputs(model, iterator, criterion=None, get_target=None):
     predicted_probas = torch.cat(predicted_probas).cpu()
     labels = torch.cat(labels).cpu()
 
-    if criterion:
-        return predicted_probas, labels, epoch_loss / len(iterator)
-    else:
-        return predicted_probas, labels
+    return predicted_probas, labels, epoch_loss / len(iterator)
 
-def evaluate(model, iterator, criterion, get_target):
+def evaluate(model, iterator, criterion=None, get_target=None):
     """
     Evaluates the model on the given iterator
     """
-
     predicted_probas, labels, loss = get_outputs(
         model, iterator, criterion, get_target
     )
 
-    preds = torch.round(predicted_probas)
-
-    pos_f1 = f1_score(labels, preds)
-    neg_f1 = f1_score(1-labels, 1-preds)
-    acc = accuracy_score(labels, preds)
-
-    return EvaluationReport(loss=loss, acc=acc, pos_f1=pos_f1, neg_f1=neg_f1)
+    return EvaluationReport.from_probas_and_labels(predicted_probas, labels)
 
 
 def evaluate_dataset(model, TEXT, test_path):
@@ -89,21 +80,8 @@ def evaluate_dataset(model, TEXT, test_path):
     """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Loading dataset...")
-    def remove_first_letter(identifier):
-        """
-        If ID is "A1234" => returns "1234"
-        """
-        if type(identifier) is str and identifier[0].isalpha():
-            return identifier[1:]
-        else:
-            return identifier
+    ID, SUBTASK_A, TEXT = create_bert_fields(TEXT=TEXT)
 
-    ID = data.Field(
-        sequential=False,
-        use_vocab=False,
-        preprocessing=remove_first_letter,
-    )
-    SUBTASK_A = data.LabelField()
 
     test_dataset = data.TabularDataset(
         test_path,
@@ -111,10 +89,10 @@ def evaluate_dataset(model, TEXT, test_path):
         fields=[("id", ID), ("text", TEXT),
                 ("subtask_a", SUBTASK_A)],
     )
+
     SUBTASK_A.build_vocab(test_dataset)
 
     assert SUBTASK_A.vocab.itos == ["NOT", "OFF"]
-
     print("Building iterators")
 
     test_it = data.Iterator(
