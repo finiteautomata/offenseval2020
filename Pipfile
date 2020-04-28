@@ -21,6 +21,7 @@ ipdb = "*"
 offenseval2020 = {editable = true,path = "."}
 pytest = "*"
 plotly = "*"
+captum = {editable = true,path = "./captum"}
 
 [requires]
 python_version = "3.6"

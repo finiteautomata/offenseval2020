@@ -12,6 +12,8 @@ More information about evaluation will be sent via e-mail in due time.
 0. Install requirements
 
 ```
+git submodule init
+git submodule update
 pipenv shell
 pipenv sync
 ```
