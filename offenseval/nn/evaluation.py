@@ -78,7 +78,7 @@ def evaluate_dataset(model, TEXT, test_path):
             - text/tweet
             - subtask_a (label NOT or OFF)
     """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = next(model.parameters()).device
     print("Loading dataset...")
     ID, SUBTASK_A, TEXT = create_bert_fields(TEXT=TEXT)
 
