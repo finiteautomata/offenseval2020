@@ -171,7 +171,7 @@ def build_datasets(
     ret = []
 
     if lang:
-        if type(lang) is str:
+        if type(lang) is str and lang[0] != "[":
             """
             Single language
             """
@@ -184,6 +184,11 @@ def build_datasets(
                 ]
             else:
                 langs = [lang]
+        elif type(lang) is str and lang[0] == "[":
+            """
+            Workaround
+            """
+            langs = lang[1:-1].split(",")
         else:
             langs = lang
 
