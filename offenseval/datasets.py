@@ -56,6 +56,7 @@ datasets = {
     },
 }
 
+
 def build_examples(path_or_df, fields, mean_threshold=0.15):
     """
     Build a list of data.Example from TSV or dataframe
@@ -127,7 +128,7 @@ def build_train_dataset(langs, fields, mean_threshold=0.5):
     """
     Convenient method to build train dataset out of many languages
 
-    langs: list of strings
+    langs: list of strings|
         List of languages to consume
 
     fields: list of data.Fields
@@ -139,7 +140,23 @@ def build_train_dataset(langs, fields, mean_threshold=0.5):
     examples = []
 
     for lang in langs:
-        df = pd.read_table(datasets[lang]["train"], quoting=csv.QUOTE_NONE)
+        perc = None
+
+        if "." in lang:
+            lang, perc = lang.split(".")
+
+        dataset_path = datasets[lang]["train"]
+        print(f"Reading {dataset_path}", end="")
+        df = pd.read_table(dataset_path, quoting=csv.QUOTE_NONE)
+
+        if perc:
+            num = (int(perc) * len(df)) // 100
+            orig_len = len(df)
+            df = df.iloc[:num]
+            print(f" at {perc}% -- using {len(df)} instances out of {orig_len}")
+        else:
+            print(f" at 100% -- using {len(df)} instances")
+
         examples += build_examples(df, fields)
 
     return data.Dataset(examples, fields.values())
@@ -163,16 +180,25 @@ def build_datasets(
             elif lang == "all+trans":
                 langs = [
                     "olid", "danish", "turkish", "arabic", "greek",
-                    "danish-trans", "turkish-trans", "arabic-trans", "greek-trans",    
+                    "danish-trans", "turkish-trans", "arabic-trans", "greek-trans",
                 ]
             else:
                 langs = [lang]
         else:
             langs = lang
 
+
         for lang in langs:
+            if "." in lang:
+                """
+                There is a modificator for
+                """
+                lang, perc = lang.split(".")
+
+                if not 0 < int(perc) <= 100:
+                    raise ValueError(f"percentage of language must be between 1 and 100")
             if lang not in datasets:
-                raise ValueError(f"lang must be one of {datasets.keys()}")
+                raise ValueError(f"lang must be one of {datasets.keys()} -- was {lang}")
 
         print(f"Building from langs {' '.join(langs)}")
         ret.append(build_train_dataset(langs, fields, mean_threshold))
@@ -184,7 +210,7 @@ def build_datasets(
             print(f"Using dev lang {langs[0]}")
             ret.append(
                 build_dataset(
-                    datasets[langs[0]]["dev"],
+                    datasets[langs[0].split(".")[0]]["dev"],
                     fields,
                     mean_threshold
                 )
@@ -197,7 +223,7 @@ def build_datasets(
             print(f"Using test lang {langs[0]}")
             ret.append(
                 build_dataset(
-                    datasets[langs[0]]["dev"],
+                    datasets[langs[0].split(".")[0]]["test"],
                     fields,
                     mean_threshold
                 )

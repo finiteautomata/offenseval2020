@@ -73,6 +73,13 @@ Multilanguage train can be performed in the following way. Dev set is taken from
 python bin/train_bert.py bert_cased models/bert_cased.da+en.pt --lang [danish,olid] --epochs 10 --lr 2
 ```
 
+You may also want to train using just 50% of Danish dataset:
+
+```
+python bin/train_bert.py bert_cased models/bert_cased.da+en.pt --lang [danish.50,olid] --epochs 10 --lr 2
+```
+
+
 If you want to manually set the training, dev and test sets, you can use:
 
 ```
