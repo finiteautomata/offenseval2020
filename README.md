@@ -1,9 +1,4 @@
-# OffensEval 2020
-
-
-A FAQ is available to help you with the most frequent questions: https://sites.google.com/site/offensevalsharedtask/faq
-
-More information about evaluation will be sent via e-mail in due time.
+# ANDES at SemEval Task 12: A jointly-trained BERT multilingual model for offensive language detection 
 
 ## Instructions
 
@@ -120,19 +115,3 @@ We use `pytest` for our tests. Just run
 ```
 pytest tests/
 ```
-
-### Data
-
-Thanks for registering for OffensEval 2020!
-
-All training sets are available. Please visit the following URLs.
-
-- Arabic, Danish, Greek, and Turkish: https://www.dropbox.com/sh/qfootyofgiywjjl/AABJefEt7p3wEOH5ohlG3t9ta?dl=0
-
-- English: https://drive.google.com/drive/folders/1-Jn13sc3q-WUp3TZWegv9Yf6UNlICtpu?usp=sharing
-
-Password: sem2020-t12
-
-A FAQ is available to help you with the most frequent questions: https://sites.google.com/site/offensevalsharedtask/faq
-
-More information about evaluation will be sent via e-mail in due time.
