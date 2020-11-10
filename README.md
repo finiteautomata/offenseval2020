@@ -1,5 +1,7 @@
 # ANDES at SemEval Task 12: A jointly-trained BERT multilingual model for offensive language detection 
 
+[Link to paper](https://arxiv.org/pdf/2008.06408.pdf)
+
 ## Instructions
 
 `python >= 3.6` and `pipenv` are needed
